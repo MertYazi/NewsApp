@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">NewsApp</string>
+    <string name="title_latest_news">Latest News</string>
+    <string name="title_saved_news">Saved News</string>
+    <string name="title_search_news">Search News</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

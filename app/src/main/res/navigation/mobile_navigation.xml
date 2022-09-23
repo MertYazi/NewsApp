@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_latest_news">
+
+    <fragment
+        android:id="@+id/navigation_latest_news"
+        android:name="com.mertyazi.newsapp.view.fragments.LatestNewsFragment"
+        android:label="@string/title_latest_news"
+        tools:layout="@layout/fragment_latest_news" >
+        <action
+            android:id="@+id/action_navigation_latest_news_to_newsFragment"
+            app:destination="@id/newsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_saved_news"
+        android:name="com.mertyazi.newsapp.view.fragments.SavedNewsFragment"
+        android:label="@string/title_saved_news"
+        tools:layout="@layout/fragment_saved_news" >
+        <action
+            android:id="@+id/action_navigation_saved_news_to_newsFragment"
+            app:destination="@id/newsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_search_news"
+        android:name="com.mertyazi.newsapp.view.fragments.SearchNewsFragment"
+        android:label="@string/title_search_news"
+        tools:layout="@layout/fragment_search_news" >
+        <action
+            android:id="@+id/action_navigation_search_news_to_newsFragment"
+            app:destination="@id/newsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newsFragment"
+        android:name="com.mertyazi.newsapp.view.fragments.NewsFragment"
+        android:label="fragment_news"
+        tools:layout="@layout/fragment_news" >
+        <argument
+            android:name="article"
+            app:argType="com.mertyazi.newsapp.model.Article" />
+    </fragment>
+</navigation>
