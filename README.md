@@ -9,9 +9,12 @@
  - Navigation Components
  - Coroutines
  - Retrofit
- - RxJava
+ - LiveData
  - Room
  - ViewBinding
+ - WorkManager
+ - Notifications
+ - Sharing
  - SafeArgs
  - Glide
  
