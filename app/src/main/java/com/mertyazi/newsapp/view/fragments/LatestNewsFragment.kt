@@ -1,35 +1,25 @@
 package com.mertyazi.newsapp.view.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mertyazi.newsapp.R
-import com.mertyazi.newsapp.application.NewsApplication
 import com.mertyazi.newsapp.databinding.FragmentLatestNewsBinding
 import com.mertyazi.newsapp.utils.Constants
 import com.mertyazi.newsapp.utils.Resource
 import com.mertyazi.newsapp.view.adapters.NewsAdapter
-import com.mertyazi.newsapp.viewmodel.NewsViewModel
-import com.mertyazi.newsapp.viewmodel.NewsViewModelFactory
 
-class LatestNewsFragment : Fragment() {
+class LatestNewsFragment : BaseFragment() {
 
     private var _binding: FragmentLatestNewsBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: NewsViewModel by viewModels {
-        NewsViewModelFactory(requireActivity().application, (requireActivity().application as NewsApplication).repository)
-    }
-    lateinit var newsAdapter: NewsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,9 +43,9 @@ class LatestNewsFragment : Fragment() {
         viewModel.latestNews.observe(viewLifecycleOwner, Observer {
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar()
+                    hideProgressBar(binding.pbLatestNews)
                     it.data?.let { response ->
-                        newsAdapter.articlesList(response.articles)
+                        newsAdapter.articlesList(response.articles.toList())
                         val totalPages = response.totalResults / Constants.PAGE_SIZE + 2
                         isLastPage = viewModel.latestNewsPage == totalPages
                         if (isLastPage) {
@@ -64,13 +54,13 @@ class LatestNewsFragment : Fragment() {
                     }
                 }
                 is Resource.Error -> {
-                    hideProgressBar()
+                    hideProgressBar(binding.pbLatestNews)
                     it.message?.let { message ->
                         Toast.makeText(requireActivity(), "Error: $message", Toast.LENGTH_LONG).show()
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar()
+                    showProgressBar(binding.pbLatestNews)
                 }
             }
         })
@@ -83,21 +73,7 @@ class LatestNewsFragment : Fragment() {
         binding.rvLatestNews.addOnScrollListener(this@LatestNewsFragment.scrollListener)
     }
 
-    private fun hideProgressBar() {
-        binding.pbLatestNews.visibility = View.GONE
-        isLoading = false
-    }
-
-    private fun showProgressBar() {
-        binding.pbLatestNews.visibility = View.VISIBLE
-        isLoading = true
-    }
-
-    var isLoading = false
-    var isLastPage = false
-    var isScrolling = false
-
-    val scrollListener = object: RecyclerView.OnScrollListener() {
+    private val scrollListener = object: RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
@@ -115,7 +91,7 @@ class LatestNewsFragment : Fragment() {
                     isTotalMoreThanVisible &&
                     isScrolling
             if (shouldPaginate) {
-                viewModel.getLatestNews("tr")
+                viewModel.getLatestNews(Constants.NEWS_LANGUAGE)
                 isScrolling = false
             }
         }

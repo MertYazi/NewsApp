@@ -3,5 +3,15 @@
     <string name="title_latest_news">Latest News</string>
     <string name="title_saved_news">Saved News</string>
     <string name="title_search_news">Search News</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="article_added">Article added to favorites.</string>
+
+    <string name="action_share_news">Share News</string>
+    <string name="notification_title">Checkout latest news</string>
+    <string name="notification_subtitle">Tap for details</string>
+    <string name="search_hint">Search...</string>
+    <string name="image_description">Image</string>
+
+    <string name="source">Source</string>
+    <string name="caption">Caption</string>
+    <string name="text">Text</string>
 </resources>
