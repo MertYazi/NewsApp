@@ -1,5 +1,6 @@
 package com.mertyazi.newsapp.view.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,33 +9,24 @@ import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mertyazi.newsapp.R
-import com.mertyazi.newsapp.application.NewsApplication
 import com.mertyazi.newsapp.databinding.FragmentSearchNewsBinding
 import com.mertyazi.newsapp.utils.Constants
 import com.mertyazi.newsapp.utils.Resource
 import com.mertyazi.newsapp.view.adapters.NewsAdapter
-import com.mertyazi.newsapp.viewmodel.NewsViewModel
-import com.mertyazi.newsapp.viewmodel.NewsViewModelFactory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SearchNewsFragment : Fragment() {
+class SearchNewsFragment : BaseFragment() {
 
     private var _binding: FragmentSearchNewsBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: NewsViewModel by viewModels {
-        NewsViewModelFactory(requireActivity().application, (requireActivity().application as NewsApplication).repository)
-    }
-    lateinit var newsAdapter: NewsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,6 +37,7 @@ class SearchNewsFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
@@ -59,7 +52,7 @@ class SearchNewsFragment : Fragment() {
         binding.etSearchNews.addTextChangedListener { text ->
             job?.cancel()
             job = MainScope().launch {
-                delay(500L)
+                delay(Constants.SEARCH_DELAY)
                 text?.let {
                     if (text.toString().isNotEmpty()) {
                         Log.e("query", text.toString())
@@ -72,9 +65,9 @@ class SearchNewsFragment : Fragment() {
         viewModel.searchNews.observe(viewLifecycleOwner, Observer {
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar()
+                    hideProgressBar(binding.pbSearchNews)
                     it.data?.let { response ->
-                        newsAdapter.articlesList(response.articles)
+                        newsAdapter.articlesList(response.articles.toList())
                         val totalPages = response.totalResults / Constants.PAGE_SIZE + 2
                         isLastPage = viewModel.searchNewsPage == totalPages
                         if (isLastPage) {
@@ -83,13 +76,13 @@ class SearchNewsFragment : Fragment() {
                     }
                 }
                 is Resource.Error -> {
-                    hideProgressBar()
+                    hideProgressBar(binding.pbSearchNews)
                     it.message?.let { message ->
                         Toast.makeText(requireActivity(), "Error on search: $message", Toast.LENGTH_LONG).show()
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar()
+                    showProgressBar(binding.pbSearchNews)
                 }
             }
         })
@@ -102,21 +95,7 @@ class SearchNewsFragment : Fragment() {
         binding.rvSearchNews.addOnScrollListener(this@SearchNewsFragment.scrollListener)
     }
 
-    private fun hideProgressBar() {
-        binding.pbSearchNews.visibility = View.GONE
-        isLoading = false
-    }
-
-    private fun showProgressBar() {
-        binding.pbSearchNews.visibility = View.VISIBLE
-        isLoading = true
-    }
-
-    var isLoading = false
-    var isLastPage = false
-    var isScrolling = false
-
-    val scrollListener = object: RecyclerView.OnScrollListener() {
+    private val scrollListener = object: RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager

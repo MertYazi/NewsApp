@@ -1,16 +1,11 @@
 package com.mertyazi.newsapp.viewmodel
 
 import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.ConnectivityManager.*
-import android.net.NetworkCapabilities.*
-import android.os.Build
 import androidx.lifecycle.*
-import com.mertyazi.newsapp.application.NewsApplication
 import com.mertyazi.newsapp.database.NewsRepository
 import com.mertyazi.newsapp.model.Article
 import com.mertyazi.newsapp.model.SearchedNews
+import com.mertyazi.newsapp.utils.Constants
 import com.mertyazi.newsapp.utils.Resource
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -31,7 +26,7 @@ class NewsViewModel(
     var searchNewsResponse: SearchedNews? = null
 
     init {
-        getLatestNews("tr")
+        getLatestNews(Constants.NEWS_LANGUAGE)
     }
 
     fun getLatestNews(code: String) = viewModelScope.launch {
@@ -89,7 +84,7 @@ class NewsViewModel(
     private suspend fun safeLatestNewsCall(code: String) {
         latestNews.postValue(Resource.Loading())
         try {
-            if (checkConnection()) {
+            if (Constants.checkConnection(this)) {
                 val response = repository.getLatestNews(code, latestNewsPage)
                 latestNews.postValue(handleLatestNewsResponse(response))
             } else {
@@ -106,7 +101,7 @@ class NewsViewModel(
     private suspend fun safeSearchNewsCall(query: String) {
         searchNews.postValue(Resource.Loading())
         try {
-            if (checkConnection()) {
+            if (Constants.checkConnection(this)) {
                 val response = repository.searchNews(query, searchNewsPage)
                 searchNews.postValue(handleSearchNewsResponse(response))
             } else {
@@ -120,31 +115,6 @@ class NewsViewModel(
         }
     }
 
-    private fun checkConnection(): Boolean {
-        val connectivityManager = getApplication<NewsApplication>()
-            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-            return when {
-                capabilities.hasTransport(TRANSPORT_WIFI) -> true
-                capabilities.hasTransport(TRANSPORT_CELLULAR) -> true
-                capabilities.hasTransport(TRANSPORT_ETHERNET) -> true
-                else -> false
-            }
-        } else {
-            connectivityManager.activeNetworkInfo?.run {
-                return when (type) {
-                    TYPE_WIFI -> true
-                    TYPE_MOBILE -> true
-                    TYPE_ETHERNET -> true
-                    else -> false
-                }
-            }
-        }
-        return false
-    }
 }
 
 class NewsViewModelFactory(
