@@ -1,4 +1,4 @@
-# NewsAppDemo
+# NewsApp
 
 -> It's a demo project to follow the latest news and save the news you want to keep for later readings.
 
