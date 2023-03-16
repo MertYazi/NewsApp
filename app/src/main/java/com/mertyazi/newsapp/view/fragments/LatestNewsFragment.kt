@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +19,9 @@ class LatestNewsFragment : BaseFragment() {
 
     private var _binding: FragmentLatestNewsBinding? = null
     private val binding get() = _binding!!
+    private var isScrolling = false
+    private var isLoading = false
+    private var isLastPage = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,6 +34,7 @@ class LatestNewsFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
 
         newsAdapter.setOnItemClickListener {
@@ -40,12 +43,12 @@ class LatestNewsFragment : BaseFragment() {
             findNavController().navigate(R.id.action_navigation_latest_news_to_newsFragment, bundle)
         }
 
-        viewModel.latestNews.observe(viewLifecycleOwner, Observer {
+        viewModel.latestNews.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar(binding.pbLatestNews)
+                    hideProgressBar()
                     it.data?.let { response ->
-                        newsAdapter.articlesList(response.articles.toList())
+                        newsAdapter.differ.submitList(response.articles.toList())
                         val totalPages = response.totalResults / Constants.PAGE_SIZE + 2
                         isLastPage = viewModel.latestNewsPage == totalPages
                         if (isLastPage) {
@@ -54,16 +57,16 @@ class LatestNewsFragment : BaseFragment() {
                     }
                 }
                 is Resource.Error -> {
-                    hideProgressBar(binding.pbLatestNews)
+                    hideProgressBar()
                     it.message?.let { message ->
                         Toast.makeText(requireActivity(), "Error: $message", Toast.LENGTH_LONG).show()
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar(binding.pbLatestNews)
+                    showProgressBar()
                 }
             }
-        })
+        }
     }
 
     private fun setupRecyclerView() {
@@ -102,6 +105,16 @@ class LatestNewsFragment : BaseFragment() {
                 isScrolling = true
             }
         }
+    }
+
+    private fun hideProgressBar() {
+        binding.pbLatestNews.visibility = View.GONE
+        isLoading = false
+    }
+
+    private fun showProgressBar() {
+        binding.pbLatestNews.visibility = View.VISIBLE
+        isLoading = true
     }
 
     override fun onDestroyView() {

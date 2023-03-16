@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mertyazi.newsapp.R
@@ -36,9 +35,9 @@ class SavedNewsFragment : BaseFragment() {
             findNavController().navigate(R.id.action_navigation_saved_news_to_newsFragment, bundle)
         }
 
-        viewModel.getSavedNews().observe(viewLifecycleOwner, Observer { articles ->
-            newsAdapter.articlesList(articles)
-        })
+        viewModel.getSavedNews().observe(viewLifecycleOwner) { articles ->
+            newsAdapter.differ.submitList(articles)
+        }
     }
 
     fun deleteSavedNews(article: Article) {

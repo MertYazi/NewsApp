@@ -31,7 +31,9 @@ class MainActivity : AppCompatActivity() {
         mNavController = findNavController(R.id.nav_host_fragment_activity_main)
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_latest_news, R.id.navigation_saved_news, R.id.navigation_search_news
+                R.id.navigation_latest_news,
+                R.id.navigation_saved_news,
+                R.id.navigation_search_news
             )
         )
         setupActionBarWithNavController(mNavController, appBarConfiguration)
@@ -58,9 +60,10 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
-    private fun createWorkRequest() = PeriodicWorkRequestBuilder<NotifyWorker>(15, TimeUnit.MINUTES)
-        .setConstraints(createConstraints())
-        .build()
+    private fun createWorkRequest() =
+        PeriodicWorkRequestBuilder<NotifyWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(createConstraints())
+            .build()
 
     private fun createConstraints() = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.NOT_REQUIRED)

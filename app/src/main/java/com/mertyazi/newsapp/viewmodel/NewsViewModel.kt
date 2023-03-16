@@ -21,7 +21,7 @@ class NewsViewModel(
     var latestNewsPage = 1
     var latestNewsResponse: SearchedNews? = null
 
-    val searchNews: MutableLiveData<Resource<SearchedNews>> = MutableLiveData()
+    var searchNews: MutableLiveData<Resource<SearchedNews>> = MutableLiveData()
     var searchNewsPage = 1
     var searchNewsResponse: SearchedNews? = null
 
@@ -102,8 +102,10 @@ class NewsViewModel(
         searchNews.postValue(Resource.Loading())
         try {
             if (Constants.checkConnection(this)) {
-                val response = repository.searchNews(query, searchNewsPage)
-                searchNews.postValue(handleSearchNewsResponse(response))
+                if (searchNewsPage < Constants.MAX_PAGE_COUNT) {
+                    val response = repository.searchNews(query, searchNewsPage)
+                    searchNews.postValue(handleSearchNewsResponse(response))
+                }
             } else {
                 searchNews.postValue(Resource.Error("No connection"))
             }

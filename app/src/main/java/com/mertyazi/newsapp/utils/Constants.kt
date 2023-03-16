@@ -8,10 +8,10 @@ import androidx.lifecycle.AndroidViewModel
 import com.mertyazi.newsapp.application.NewsApplication
 
 object Constants {
-    const val API_KEY: String = ""
     const val BASE_URL: String = "https://newsapi.org/"
-    const val SEARCH_DELAY: Long = 600L
+    const val SEARCH_DELAY: Long = 500L
     const val PAGE_SIZE: Int = 20
+    const val MAX_PAGE_COUNT: Int = 6
     const val NEWS_LANGUAGE: String = "tr"
 
     const val NOTIFICATION_ID = "NewsApp_notification_id"
