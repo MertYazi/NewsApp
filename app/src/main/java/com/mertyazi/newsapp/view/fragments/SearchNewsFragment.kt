@@ -2,14 +2,12 @@ package com.mertyazi.newsapp.view.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +25,9 @@ class SearchNewsFragment : BaseFragment() {
 
     private var _binding: FragmentSearchNewsBinding? = null
     private val binding get() = _binding!!
+    private var isScrolling = false
+    private var isLoading = false
+    private var isLastPage = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,6 +41,7 @@ class SearchNewsFragment : BaseFragment() {
     @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
 
         newsAdapter.setOnItemClickListener {
@@ -49,25 +51,30 @@ class SearchNewsFragment : BaseFragment() {
         }
 
         var job: Job? = null
-        binding.etSearchNews.addTextChangedListener { text ->
+        binding.etSearchNews.addTextChangedListener { editable ->
             job?.cancel()
             job = MainScope().launch {
                 delay(Constants.SEARCH_DELAY)
-                text?.let {
-                    if (text.toString().isNotEmpty()) {
-                        Log.e("query", text.toString())
-                        viewModel.searchNews(text.toString())
+                editable?.let {
+                    if (editable.toString().isNotEmpty()) {
+                        if (binding.etSearchNews.hasFocus()) {
+                            viewModel.searchNewsResponse = null
+                            viewModel.searchNewsPage = 1
+                            viewModel.searchNews(editable.toString())
+                        }
+                    } else {
+                        newsAdapter.differ.submitList(listOf())
                     }
                 }
             }
         }
 
-        viewModel.searchNews.observe(viewLifecycleOwner, Observer {
+        viewModel.searchNews.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
-                    hideProgressBar(binding.pbSearchNews)
+                    hideProgressBar()
                     it.data?.let { response ->
-                        newsAdapter.articlesList(response.articles.toList())
+                        newsAdapter.differ.submitList(response.articles.toList())
                         val totalPages = response.totalResults / Constants.PAGE_SIZE + 2
                         isLastPage = viewModel.searchNewsPage == totalPages
                         if (isLastPage) {
@@ -76,16 +83,20 @@ class SearchNewsFragment : BaseFragment() {
                     }
                 }
                 is Resource.Error -> {
-                    hideProgressBar(binding.pbSearchNews)
+                    hideProgressBar()
                     it.message?.let { message ->
-                        Toast.makeText(requireActivity(), "Error on search: $message", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            requireActivity(),
+                            "Error on search: $message",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
                 is Resource.Loading -> {
-                    showProgressBar(binding.pbSearchNews)
+                    showProgressBar()
                 }
             }
-        })
+        }
     }
 
     private fun setupRecyclerView() {
@@ -113,7 +124,7 @@ class SearchNewsFragment : BaseFragment() {
                     isTotalMoreThanVisible &&
                     isScrolling
             if (shouldPaginate) {
-                viewModel.searchNews(binding.etSearchNews.toString())
+                viewModel.searchNews(binding.etSearchNews.text.toString())
                 isScrolling = false
             }
         }
@@ -124,6 +135,16 @@ class SearchNewsFragment : BaseFragment() {
                 isScrolling = true
             }
         }
+    }
+
+    private fun hideProgressBar() {
+        binding.pbSearchNews.visibility = View.GONE
+        isLoading = false
+    }
+
+    private fun showProgressBar() {
+        binding.pbSearchNews.visibility = View.VISIBLE
+        isLoading = true
     }
 
     override fun onDestroyView() {
